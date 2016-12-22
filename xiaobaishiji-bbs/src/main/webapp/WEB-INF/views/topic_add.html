@@ -97,6 +97,7 @@
 	                        	<input id="p1" type="file" name="uploadFile1">
 	                        	<a href="javascript:void(0);"  onclick="addPic()">添加文件</a>
 	                        	<a href="javascript:void(0);" onclick="delPic()">删除文件</a>
+	                        	<a href="javascript:void(0);" onclick="clr()">清空</a>
                         </div>
                         <div>
                         	<button type="button" class="btn btn-default btn-small preview">预览帖子</button>
@@ -113,7 +114,7 @@
         #include("./common/sidebar.html")
     </div>
 </div>
-<script type="text/javascript" src="${cdn}/assets/scripts/jquery-2.2.0.min.js"></script>
+<!-- <script type="text/javascript" src="${cdn}/assets/scripts/jquery-2.2.0.min.js"></script>
 <script type="text/javascript">
 	$(document).ready(function(){
 		$(".fileUpload").liteUploader({
@@ -140,7 +141,6 @@
 				}
 			}
 		});
-
 		$(".fileUpload").change(function () {
 			$(this).data("liteUploader").startUpload();
 		});
@@ -149,9 +149,14 @@
 	function doUpload() {
 		$(".fileUpload").click();
 	}
-</script>
+</script> -->
 <script type="text/javascript">var comment_members = [];
 var id=2;
+function clr(){
+		for(var i=0;i<id;i++){
+			$("#p"+i+"").val("");
+		}
+	}
 	function addPic(){
 		
 			if($("#p"+(id-1)+"").val().length!=0){
@@ -163,17 +168,15 @@ var id=2;
 			}else{
 				alert("请上传完整文件");
 			}
-			
 		}
 		function delPic(){
 		
 			if(id==2){
-				return ;
+				return;
 			}
 			$("#p"+(id-1)+"").remove();
 			id--;
-		}
-
+		} 
 	
 </script>
 #include("./common/emoji.html")

@@ -119,83 +119,79 @@ public class TopicController extends BaseController {
 	 * 编辑帖子操作
 	 */
 	@Route(value = "/topic/edit", method = HttpMethod.POST)
-	public ModelAndView edit_topic(Request request, Response response) {
-
+	public void edit_topic(Request request, Response response){
 		Long tid = request.queryAsLong("tid");
 		String title = request.query("title");
 		String content = request.query("content");
 		Long nid = request.queryAsLong("nid");
-		this.putData(request);
-		Long pid = request.queryAsLong("pid");
-		request.attribute("pid", pid);
+		
 		LoginUser user = SessionKit.getLoginUser();
-		if (null == user) {
+		if(null == user){
 			this.nosignin(response);
-			return this.getView("topic_edit");
+			return;
 		}
-
-		if (null == tid) {
-			request.attribute(this.ERROR, "不存在该帖子");
-			return this.getView("topic_edit");
+		
+		if(null == tid){
+			this.error(response, "不存在该帖子");
+			return;
 		}
-
+		
 		// 不存在该帖子
 		Topic topic = topicService.getTopic(tid);
-		if (null == topic) {
-			request.attribute(this.ERROR, "不存在该帖子");
-			return this.getView("topic_edit");
+		if(null == topic){
+			this.error(response, "不存在该帖子");
+			return;
 		}
-
+		
 		// 无权限操作
-		if (!topic.getUid().equals(user.getUid())) {
-			request.attribute(this.ERROR, "无权限操作该帖");
-			return this.getView("topic_edit");
+		if(!topic.getUid().equals(user.getUid())){
+			this.error(response, "无权限操作该帖");
+			return;
 		}
-
+		
 		// 超过300秒
-		if ((DateKit.getCurrentUnixTime() - topic.getCreate_time()) > 300) {
-			request.attribute(this.ERROR, "超过300秒禁止编辑");
-			return this.getView("topic_edit");
+		if( (DateKit.getCurrentUnixTime() - topic.getCreate_time()) > 300 ){
+			this.error(response, "超过300秒禁止编辑");
+			return;
 		}
-
-		if (StringKit.isBlank(title) || StringKit.isBlank(content) || null == nid) {
-			request.attribute(this.ERROR, "部分内容未输入");
-			return this.getView("topic_edit");
+		
+		if(StringKit.isBlank(title) || StringKit.isBlank(content) || null == nid){
+			this.error(response, "部分内容未输入");
+			return;
 		}
-
-		if (title.length() < 4 || title.length() > 50) {
-			request.attribute(this.ERROR, "标题长度在4-50个字符哦");
-			return this.getView("topic_edit");
+		
+		if(title.length() < 4 || title.length() > 50){
+			this.error(response, "标题长度在4-50个字符哦");
+			return;
 		}
-
-		if (content.length() < 5) {
-			request.attribute(this.ERROR,"您真是一字值千金啊。");
-			return this.getView("topic_edit");
+		
+		if(content.length() < 5){
+			this.error(response, "您真是一字值千金啊。");
+			return;
 		}
-
-		if (content.length() > 10000) {
-			request.attribute(this.ERROR,"内容太长了，试试少吐点口水");
-			return this.getView("topic_edit");
+		
+		if(content.length() > 10000){
+			this.error(response, "内容太长了，试试少吐点口水");
+			return;
 		}
-
+		
 		Long last_time = topicService.getLastUpdateTime(user.getUid());
-		if (null != last_time && (DateKit.getCurrentUnixTime() - last_time) < 10) {
-			request.attribute(this.ERROR,"您操作频率太快，过一会儿操作吧！");
-			return this.getView("topic_edit");
+		if(null != last_time && (DateKit.getCurrentUnixTime() - last_time) < 10 ){
+			this.error(response, "您操作频率太快，过一会儿操作吧！");
+			return;
 		}
-
+		
 		try {
 			// 编辑帖子
 			topicService.update(tid, nid, title, content);
 			userlogService.save(user.getUid(), Actions.UPDATE_TOPIC, content);
-
-			response.go("/topic/"+tid);
+			
+			this.success(response, "帖子编辑成功");
 		} catch (Exception e) {
 			e.printStackTrace();
-			request.attribute(this.ERROR, "帖子编辑失败");
-			return this.getView("topic_edit");
+			this.error(response, "帖子编辑失败");
+			return;
 		}
-		return this.getView("topic_edit");
 	}
 
 	/**
@@ -432,10 +428,11 @@ public class TopicController extends BaseController {
 			if(flag){
 				Constant.SYS_INFO = settingsService.getSystemInfo();
 				Constant.VIEW_CONTEXT.set("sys_info", Constant.SYS_INFO);
-
 				userlogService.save(user.getUid(), Actions.ADD_COMMENT, content);
-
-				this.success(response, "");
+				
+//				this.success(response, tid);
+//				return;
+				response.go( "/topic/"+tid);
 			} else {
 				this.error(response, "帖子评论失败");
 			}
