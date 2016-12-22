@@ -1,0 +1,182 @@
+#include("./common/header.html", {site_title:"发布新帖子"})
+<link rel="stylesheet" href="${base}/assets/lib/highlight/styles/default.css" />
+<link rel="stylesheet" href="${base}/assets/lib/highlight/styles/github.css" />
+<script src="${base}/assets/lib/highlight/highlight.pack.js"></script>
+<script src="${base}/assets/scripts/main.js"></script>
+<script>hljs.initHighlightingOnLoad();</script>
+<div class="container">
+    <div class="row">
+        <div class="col-md-9">
+            <div class="panel panel-default">
+                <div class="panel-heading">
+                    <h3 class="panel-title">发布新帖子</h3>
+                </div>
+                <div class="panel-body">
+               	<!-- <form id="topic-add" role="form" action="${base_url('/signin')}" enctype="multipart/form-data">
+                        <div class="form-group">
+                            <label for="title">标题</label>
+                            <input type="text" class="form-control" id="title" name="title" placeholder="请输入帖子标题" 
+                            	required="required" />
+                        </div>
+                        <div class="form-group">
+                            <label for="nid">节点</label>
+                            <select class="form-control" id="nid"  name="nid">
+                                <option value ="">请选择节点</option>
+                                #for(node : nodes)
+			                    	#if(node.pid == 0)
+			                    		#if(null != node.items)
+				                    		<optgroup label="${node.node_name}">
+					                     	#for(item : node.items)
+					                     	<option #if(null != pid && pid == item.nid)selected="selected"#end value="${item.nid}">${item.node_name}</option>
+					                     	#end
+				                     	#else
+				                     		<option value="${node.nid}">${node.node_name}</option>
+			                    		#end
+			                    	#end
+			                    #end
+                            </select>
+                        </div>
+                        
+                        <div class="form-group">
+                            <label for="nid">帖子内容</label>
+	                        <div class="form-group">
+	                            <textarea data-emojiable="true" id="content" class="form-control" 
+	                            	placeholder="撸下你要发射的内容!!!" name="content" rows="8" required="required"></textarea>
+	                        </div>
+	                        <label for="nid">上传图片</label>
+	                        	<input id="p1" type="file" name="uploadFile1">
+	                        	<button id="addpic" onclick="addPic()">添加图片</button>
+	                        	<button id="addpic" onclick="delPic()">删除图片</button>
+                        </div>
+                        <div>
+                        	<button type="button" class="btn btn-default btn-small preview">预览帖子</button>
+							<input type="submit" value="发布帖子" class="btn btn-primary btn-small ladda-button" data-style="zoom-out">
+								<span class="ladda-label">发布帖子</span>
+							</button>                        	
+                        </div>
+                    </form>  -->
+                    #if(null != error)
+					<div class="alert alert-danger">${error}</div>
+					#end
+                   <form  method="post" role="form" action="${base_url('/topic/add')}" enctype="multipart/form-data" accept-charset="UTF-8">
+						  <div class="form-group">
+                            <label for="title">标题</label>
+                            <input type="text" class="form-control" id="title" name="title" placeholder="请输入帖子标题,标题长度在4-50个字符哦" 
+                            	required="required" />
+                        </div>
+                        <div class="form-group">
+                            <label for="nid">节点</label>
+                            <select class="form-control" id="nid"  name="nid">
+                                <option value ="">请选择节点</option>
+                                #for(node : nodes)
+			                    	#if(node.pid == 0)
+								<optgroup label="${node.node_name}">
+			                    		#if(null != node.items)
+												#for(item : node.items)
+												<option #if(null != pid && pid == item.nid)selected="selected"#end value="${item.nid}">${item.node_name}</option>
+												#end
+				                     	#else
+				                     		<option value="${node.nid}">${node.node_name}</option>
+			                    		#end
+								</optgroup>
+			                    	#end
+			                    #end
+
+                            </select>
+                        </div>
+                        
+                        <div class="form-group">
+                            <label for="nid">帖子内容</label>
+	                        <div class="form-group">
+	                            <textarea data-emojiable="true" id="content" class="form-control" 
+	                            	placeholder="撸下你要发射的内容!!!,不能少于5个字符" name="content" rows="8" required="required"></textarea>
+	                        </div>
+							</div>
+					   <div class="form-group">
+	                        <label for="nid">上传文件</label>
+	                        	<input id="p1" type="file" name="uploadFile1">
+	                        	<a href="javascript:void(0);"  onclick="addPic()">添加文件</a>
+	                        	<a href="javascript:void(0);" onclick="delPic()">删除文件</a>
+                        </div>
+                        <div>
+                        	<button type="button" class="btn btn-default btn-small preview">预览帖子</button>
+							<button type="submit" class="btn btn-primary btn-small ladda-button" id="upload" data-style="zoom-out" onclick="sub()">
+								<span class="ladda-label">发布帖子</span>
+							</button>                        	
+                        </div>
+
+					</form>
+                </div>
+                <div id="markdown_preview" class="panel-footer hide"></div>
+            </div>
+        </div><!-- /.col-md-8 -->
+        #include("./common/sidebar.html")
+    </div>
+</div>
+<script type="text/javascript" src="${cdn}/assets/scripts/jquery-2.2.0.min.js"></script>
+<script type="text/javascript">
+	$(document).ready(function(){
+		$(".fileUpload").liteUploader({
+			script: "${base_url('/uploadimg')}",
+			params: {type:'avatar'},
+			rules: {
+				allowedFileTypes: "image/jpeg,image/png,image/jpeg",
+				maxSize: 512000
+			}
+		}).on("lu:success", function (e, data) {
+			if(data){
+				$("#upload_img").attr('src', data.url);
+				$("#user_avatar").val(data.savepath);
+			}
+		}).on("lu:errors", function (e, data) {
+			console.log(data);
+			if(data && data.length > 0){
+				var item = data[0];
+				if(item && item.errors && item.errors.length > 0){
+					var err = item.errors[0];
+					if(err.type == 'size'){
+						alertError("图片大小超出限制,请重新上传");
+					}
+				}
+			}
+		});
+
+		$(".fileUpload").change(function () {
+			$(this).data("liteUploader").startUpload();
+		});
+	});
+	//上传方法
+	function doUpload() {
+		$(".fileUpload").click();
+	}
+</script>
+<script type="text/javascript">var comment_members = [];
+var id=2;
+	function addPic(){
+		
+			if($("#p"+(id-1)+"").val().length!=0){
+				if(id==2){
+					$("#p1").after("<input id='p"+id+"' type='file' name='uploadFile"+id+"'>");
+				}else
+				$("#p"+(id-1)+"").after("<input id='p"+id+"' type='file' name='uploadFile"+id+"'>");
+				id++;	
+			}else{
+				alert("请上传完整文件");
+			}
+			
+		}
+		function delPic(){
+		
+			if(id==2){
+				return ;
+			}
+			$("#p"+(id-1)+"").remove();
+			id--;
+		}
+
+	
+</script>
+#include("./common/emoji.html")
+#include("./common/footer.html")
+</body>
+</html>
